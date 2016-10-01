@@ -145,6 +145,7 @@ void LCD_init(void)
 	LCDputc(0x101);	// Limpa
 	LCDputc(0x10c);	// Cursor oculto
 }
+
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/

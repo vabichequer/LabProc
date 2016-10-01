@@ -34,6 +34,7 @@
 #include "stm32f0xx_hal.h"
 #include "usart.h"
 #include "gpio.h"
+#include "ctype.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -43,6 +44,8 @@
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
+
+int CAPS = 0, SHIFT = 0, CTRL = 0, NUMLOCK = 0, linhaDeBaixo = 0, posicao = 0;
 
 /* USER CODE END PV */
 
@@ -58,6 +61,7 @@ void pulsarEnable();
 void LCDputchar(int c);
 void LCDcomando(int c);
 void UART2puts(char *txt);
+int kbd_getchar(void);
 
 /* USER CODE END PFP */
 
@@ -100,6 +104,382 @@ int le_scan(void)
 	return scan;
 }
 
+int kbd_getchar(void)
+{
+	int sc = le_scan();
+	int tecla; 
+	//sc
+	switch(sc)
+	{
+		// Parte principal
+		case 0x0E:
+			tecla = 39;
+			break;
+		case 0x16:
+			tecla = 49;
+			break;
+		case 0x1E:
+			tecla = 50;
+			break;
+		case 0x26:
+			tecla = 51;
+			break;
+		case 0x25:
+			tecla = 52;
+			break;
+		case 0x2E:
+			tecla = 53;
+			break;
+		case 0x36:
+			tecla = 54;
+			break;
+		case 0x3D:
+			tecla = 55;
+			break;
+		case 0x3E:
+			tecla = 56;
+			break;
+		case 0x46:
+			tecla = 57;
+			break;
+		case 0x45:
+			tecla = 48;
+			break;
+		case 0x4E:
+			tecla = 45;
+			break;
+		case 0x55:
+			tecla = 61;
+			break;
+		case 0x66:
+			if (posicao == 16)
+			{
+				LCDcomando(0x8F);
+				LCDputc(0x20);
+				LCDcomando(0x10);
+				posicao--;
+			}
+			else if (posicao > 0)
+			{
+				LCDcomando(0x10);
+				LCDputc(0x20);
+				LCDcomando(0x10);
+				posicao--;
+			}
+			tecla = -1; // BACKSPACE
+			break;
+		case 0x0D:
+			tecla = -1; // TAB
+			break;
+		case 0x15:
+			tecla = 113;
+			break;
+		case 0x1D:
+			tecla = 119;
+			break;
+		case 0x24:
+			tecla = 101;
+			break;
+		case 0x2D:
+			tecla = 114;
+			break;
+		case 0x2C:
+			tecla = 116;
+			break;
+		case 0x35:
+			tecla = 121;
+			break;
+		case 0x3C:
+			tecla = 117;
+			break;
+		case 0x43:
+			tecla = 105;
+			break;
+		case 0x44:
+			tecla = 111;
+			break;
+		case 0x4D:
+			tecla = 112;
+			break;
+		case 0x54:
+			tecla = 180;
+			break;
+		case 0x5B:
+			tecla = 91;
+			break;
+		case 0x5A:
+			if (!linhaDeBaixo) 
+			{
+				linhaDeBaixo = 1;
+				LCDcomando(0xC0);
+				posicao = 16;
+			}
+			tecla = -1; // ENTER
+			break;
+		case 0x58:
+			if (CAPS) CAPS = 0;
+			else CAPS = 1;
+			tecla = -1; // CAPS LOCK
+			break;
+		case 0x1C:
+			tecla = 97;
+			break;
+		case 0x1B:
+			tecla = 115;
+			break;
+		case 0x23:
+			tecla = 100;
+			break;
+		case 0x2B:
+			tecla = 102;
+			break;
+		case 0x34:
+			tecla = 103;
+			break;
+		case 0x33:
+			tecla = 104;
+			break;
+		case 0x3B:
+			tecla = 106;
+			break;
+		case 0x42:
+			tecla = 107;
+			break;
+		case 0x4B:
+			tecla = 108;
+			break;
+		case 0x4C:
+			tecla = 128;
+			break;
+		case 0x52:
+			tecla = 126;
+			break;
+		case 0x5D:
+			tecla = 93;
+			break;
+		case 0x12:
+			SHIFT = 1;
+			tecla = -1; // SHIFT ESQUERDO
+			break;
+		case 0x61:
+			tecla = 92;
+			break;
+		case 0x1A:
+			tecla = 122;
+			break;
+		case 0x22:
+			tecla = 120;
+			break;
+		case 0x21:
+			tecla = 99;
+			break;
+		case 0x2A:
+			tecla = 118;
+			break;
+		case 0x32:
+			tecla = 98;
+			break;
+		case 0x31:
+			tecla = 110;
+			break;
+		case 0x3A:
+			tecla = 109;
+			break;
+		case 0x41:
+			tecla = 44;
+			break;
+		case 0x49:
+			tecla = 46;
+			break;
+		case 0x4A:
+			tecla = 59;
+			break;
+		case 0x51:
+			tecla = 47;
+			break;
+		case 0x59:
+			SHIFT = 1;
+			tecla = -1; // SHIFT DIREITO
+			break;
+		case 0x14:
+			CTRL = 1;
+			tecla = -1; // CTRL ESQUERDO
+			break;
+		case 0x11:
+			tecla = -1; // ALT ESQUERDO
+			break;
+		case 0x29:
+			tecla = 32;
+			break;
+		case 0xE011:
+			tecla = -1; // ALT DIREITO
+			break;
+		// Teclas de função
+		case 0x76:
+			tecla = 27; // ESC	
+			break;
+		// Teclado numérico
+		case 0x70:
+			tecla = 48;
+			break;
+		case 0x71:
+			tecla = 46;
+			break;
+		case 0x69:
+			tecla = 49;
+			break;		
+		case 0x72:
+			tecla = 50;
+			break;		
+		case 0x7A:
+			tecla = 51;
+			break;		
+		case 0x6B:
+			tecla = 52;
+			break;		
+		case 0x73:
+			tecla = 53;
+			break;		
+		case 0x74:
+			tecla = 54;
+			break;		
+		case 0x6C:
+			tecla = 55;
+			break;		
+		case 0x75:
+			tecla = 56;
+			break;		
+		case 0x7D:
+			tecla = 57;
+			break;		
+		case 0x79:
+			tecla = 43;
+			break;		
+		case 0x7B:
+			tecla = 45;
+			break;		
+		case 0x7C:
+			tecla = 42;
+			break;		
+		case 0x77:
+			if (NUMLOCK) NUMLOCK = 0;
+			else NUMLOCK = 1;
+			tecla = -1; // NUM LOCK
+			break;
+		// Brake code]
+		case 0xE0:
+			sc = le_scan();
+			if (sc == 0xF0) 
+			{
+				sc = le_scan();
+				switch (sc)
+				{
+					case 0x14:
+						CTRL = 0;
+						break;
+				}
+			}
+			else if (sc == 0x4A) tecla = 47;
+			else if (sc == 0x5A)
+			{				
+				if (!linhaDeBaixo) 
+				{
+					linhaDeBaixo = 1;
+					LCDcomando(0xC0);
+					posicao = 16;
+				}
+				tecla = -1; // ENTER
+			}
+			else if (sc == 0x14)
+			{
+				CTRL = 1;
+				tecla = -1;
+			}
+			break;
+		case 0xF0:
+			sc = le_scan();
+			if ((sc == 0x12) || (sc == 0x59))	SHIFT = 0;
+			if (sc == 0x14) CTRL = 0;
+			tecla = -1; // BRAKE CODE
+			break;
+	}
+	if (tecla != -1)
+	{
+		if((SHIFT || CAPS) && isalpha(tecla)) tecla -= 32;
+		else if (CTRL) tecla -= 96;
+		else if (SHIFT)
+		{
+			switch(sc)
+			{
+				case 0x16:
+					tecla = 33;
+					break;
+				case 0x1E:
+					tecla = 64;
+					break;
+				case 0x26:
+					tecla = 35;
+					break;
+				case 0x25:
+					tecla = 36;
+					break;
+				case 0x2E:
+					tecla = 37;
+					break;
+				case 0x36:
+					tecla = 168;
+					break;
+				case 0x3D:
+					tecla = 38;
+					break;
+				case 0x3E:
+					tecla = 42;
+					break;
+				case 0x46:
+					tecla = 40;
+					break;
+				case 0x45:
+					tecla = 41;
+					break;
+				case 0x0E:
+					tecla = 34;
+					break;
+				case 0x4E:
+					tecla = 95;
+					break;
+				case 0x55:
+					tecla = 43;
+					break;
+				case 0x54:
+					tecla = 96;
+					break;
+				case 0x5B:
+					tecla = 123;
+					break;
+				case 0x52:
+					tecla = 94;
+					break;
+				case 0x5D:
+					tecla = 125;
+					break;
+				case 0x41:
+					tecla = 60;
+					break;
+				case 0x49:
+					tecla = 62;
+					break;
+				case 0x4A:
+					tecla = 58;
+					break;
+				case 0x51:
+					tecla = 63;
+					break;
+			}
+		}
+	}
+	return tecla;
+}
+
 /* USER CODE END 0 */
 
 int main(void)
@@ -109,6 +489,7 @@ int main(void)
   /* USER CODE BEGIN 1 */
 
 	int sc; // Scan code
+	char ASCII;
 	
   /* USER CODE END 1 */
 
@@ -126,18 +507,50 @@ int main(void)
 
   /* USER CODE BEGIN 2 */
   LCD_init();
-	LCDputs("Teste do LCD");
-	UART2puts("\r\nTeste da USART2\r\n");
+	UART2puts("\r\Iniciada a USART\r\n");
 	miliseg = min =seg =0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+	int debug = 0;
+	
   while (1)
-  {
-		sc = le_scan();
-		sprintf(texto, "%02X ", sc);
-		UART2puts(texto);
+  {		
+		if (debug)
+		{
+			sc = le_scan();				
+			sprintf(texto, "%02X ", sc);
+			UART2puts(texto);
+			LCDputs(texto);
+		}
+		else
+		{
+			sc = kbd_getchar();
+			if (sc != -1)
+			{
+				ASCII = sc;
+				sprintf(texto, "%c", ASCII);
+				UART2puts(texto);
+				LCDputs(texto);
+				if (posicao < 15) posicao++;
+				else if (posicao < 31)
+				{
+					if (posicao == 15) 
+					{
+						LCDcomando(0xC0);
+						linhaDeBaixo = 1;
+					}
+					posicao++;
+				}
+				else
+				{
+					LCDcomando(0x80);
+					linhaDeBaixo = 0;
+					posicao = 0;
+				}
+			}
+		}
 		
   /* USER CODE END WHILE */
 
