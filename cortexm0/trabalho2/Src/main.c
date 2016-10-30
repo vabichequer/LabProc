@@ -379,10 +379,7 @@ int kbd_getchar(void)
 						break;
 				}
 			}
-			else if (sc == 0x4A) 
-			{
-				tecla = 47;
-			}
+			else if (sc == 0x4A) tecla = 47;
 			else if (sc == 0x5A)
 			{				
 				if (!linhaDeBaixo) 
